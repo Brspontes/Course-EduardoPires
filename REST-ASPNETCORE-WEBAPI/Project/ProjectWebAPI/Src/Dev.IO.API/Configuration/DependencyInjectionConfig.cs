@@ -1,4 +1,6 @@
 ﻿using DevIO.Business.Intefaces;
+using DevIO.Business.Notificacoes;
+using DevIO.Business.Services;
 using DevIO.Data.Context;
 using DevIO.Data.Repository;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,8 +16,15 @@ namespace Dev.IO.API.Configuration
         public static IServiceCollection ResolveDependencies(this IServiceCollection services)
         {
             services.AddScoped<MeuDbContext>();
-            services.AddScoped<IFornecedorRepository, FornecedorRepository>();
 
+            services.AddScoped<IFornecedorRepository, FornecedorRepository>();
+            services.AddScoped<IProdutoRepository, ProdutoRepository>();
+            services.AddScoped<IEnderecoRepository, EnderecoRepository>();
+
+            services.AddScoped<IFornecedorService, FornecedorService>();
+            services.AddScoped<IProdutoService, ProdutoService>();
+            services.AddScoped<INotificador, Notificador>();
+            
             return services;
         }
     }
