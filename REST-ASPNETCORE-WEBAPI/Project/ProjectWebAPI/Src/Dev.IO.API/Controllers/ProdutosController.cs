@@ -2,6 +2,7 @@
 using Dev.IO.API.ViewModels;
 using DevIO.Business.Intefaces;
 using DevIO.Business.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -55,6 +56,23 @@ namespace Dev.IO.API.Controllers
             return CustomResponse(produtosViewModel);
         }
 
+        [HttpPost("Adicionar")]
+        public async Task<ActionResult<ProdutosViewModel>> AdicionarAlternativo(ProdutosImagemViewModel produtosViewModel)
+        {
+            if (!ModelState.IsValid) return CustomResponse(ModelState);
+
+            var imgPrefix = Guid.NewGuid() + "_";
+
+            if (!await UploadArquivoAlternativo(produtosViewModel.ImagemUpload, imgPrefix))
+                return CustomResponse(produtosViewModel);
+
+            produtosViewModel.Imagem = imgPrefix + produtosViewModel.ImagemUpload;
+
+            await produtoService.Adicionar(mapper.Map<Produto>(produtosViewModel));
+            return CustomResponse(produtosViewModel);
+        }
+
+
         [HttpDelete("{id:guid}")]
         public async Task<ActionResult<ProdutosViewModel>> Excluir([FromRoute] Guid id)
         {
@@ -90,6 +108,30 @@ namespace Dev.IO.API.Controllers
             }
 
             System.IO.File.WriteAllBytes(filePath, imageDataByteArray);
+            return true;
+        }
+
+        private async Task<bool> UploadArquivoAlternativo(IFormFile arquivo, string imgPrefixo)
+        {
+            if (arquivo == null || arquivo.Length == 0)
+            {
+                NotificarErro("Forneça uma imagem para este produto!");
+                return false;
+            }
+
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/app/demo-webapi/src/assets", imgPrefixo + arquivo.FileName);
+
+            if (System.IO.File.Exists(path))
+            {
+                NotificarErro("Já existe um arquivo com este nome!");
+                return false;
+            }
+
+            using (var stream = new FileStream(path, FileMode.Create))
+            {
+                await arquivo.CopyToAsync(stream);
+            }
+
             return true;
         }
     }
