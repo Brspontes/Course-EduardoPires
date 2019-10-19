@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using Dev.IO.API.Extensions;
 using Dev.IO.API.ViewModels;
 using DevIO.Business.Intefaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Dev.IO.API.Controllers
 {
@@ -16,12 +21,14 @@ namespace Dev.IO.API.Controllers
     {
         private readonly SignInManager<IdentityUser> signInManager;
         private readonly UserManager<IdentityUser> userManager;
+        private readonly AppSettings appSettings;
 
-        public AuthController(INotificador notificador, SignInManager<IdentityUser> signInManager, 
-            UserManager<IdentityUser> userManager) : base(notificador)
+        public AuthController(INotificador notificador, SignInManager<IdentityUser> signInManager,
+            UserManager<IdentityUser> userManager, IOptions<AppSettings> appSettings) : base(notificador)
         {
             this.signInManager = signInManager;
             this.userManager = userManager;
+            this.appSettings = appSettings.Value;
         }
 
         [HttpPost("nova-conta")]
@@ -41,7 +48,7 @@ namespace Dev.IO.API.Controllers
             if(result.Succeeded)
             {
                 await signInManager.SignInAsync(user, false); //realiza login do usuário
-                return CustomResponse(registerUser);
+                return CustomResponse(GerarJWT());
             }
 
             foreach (var error in result.Errors)
@@ -62,7 +69,7 @@ namespace Dev.IO.API.Controllers
 
             if (result.Succeeded)
             {
-                return CustomResponse(loginUser);
+                return CustomResponse(GerarJWT());
             }
             if(result.IsLockedOut)
             {
@@ -72,6 +79,22 @@ namespace Dev.IO.API.Controllers
 
             NotificarErro("Usuário ou Senha incorretos");
             return CustomResponse(loginUser);
+        }
+
+        private string GerarJWT()
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(appSettings.Secret);
+            var token = tokenHandler.CreateToken(new SecurityTokenDescriptor
+            {
+                Issuer = appSettings.Emissor,
+                Audience = appSettings.ValidoEm,
+                Expires = DateTime.UtcNow.AddHours(appSettings.ExpiracaoHoras),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            });
+
+            var encodedToken = tokenHandler.WriteToken(token);
+            return encodedToken;
         }
     }
 }
