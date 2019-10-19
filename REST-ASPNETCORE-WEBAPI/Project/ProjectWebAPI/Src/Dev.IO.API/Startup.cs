@@ -27,15 +27,9 @@ namespace Dev.IO.API
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
             });
 
+            services.AddIdentityConfiguration(Configuration);
             services.AddAutoMapper(typeof(Startup));
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-
-            services.Configure<ApiBehaviorOptions>(options =>
-            {
-                //Desabilitar validações automáticas e mensagens de erro
-                options.SuppressModelStateInvalidFilter = true;
-            });
-
+            services.WebApiConfig();
             services.ResolveDependencies();
         }
 
@@ -52,8 +46,8 @@ namespace Dev.IO.API
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
-            app.UseMvc();
+            app.UseAuthentication(); // => sempre antes da configuração do MVC
+            app.UseMvcConfiguration();
         }
     }
 }

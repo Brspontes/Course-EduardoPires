@@ -29,7 +29,7 @@ namespace Dev.IO.API.Controllers
 
         [HttpGet]
         public async Task<ActionResult<ProdutosViewModel>> ObterTodos() =>
-            Ok(mapper.Map<ProdutosViewModel>(await produtoRepository.ObterProdutosFornecedores()));
+            Ok(mapper.Map<IEnumerable<ProdutosViewModel>>(await produtoRepository.ObterProdutosFornecedores()));
 
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<ProdutosViewModel>> ObterPorId([FromRoute] Guid id)
@@ -54,6 +54,40 @@ namespace Dev.IO.API.Controllers
 
             await produtoService.Adicionar(mapper.Map<Produto>(produtosViewModel));
             return CustomResponse(produtosViewModel);
+        }
+
+        [HttpPut("{id:guid}")]
+        public async Task<IActionResult> Atualizar(Guid id, ProdutosViewModel produtoViewModel)
+        {
+            if (id != produtoViewModel.Id)
+            {
+                NotificarErro("Os ids informados não são iguais!");
+                return CustomResponse();
+            }
+
+            var produtoAtualizacao = await ObterProduto(id);
+            produtoViewModel.Imagem = produtoAtualizacao.Imagem;
+            if (!ModelState.IsValid) return CustomResponse(ModelState);
+
+            if (produtoViewModel.ImagemUpload != null)
+            {
+                var imagemNome = Guid.NewGuid() + "_" + produtoViewModel.Imagem;
+                if (!UploadArquivo(produtoViewModel.ImagemUpload, imagemNome))
+                {
+                    return CustomResponse(ModelState);
+                }
+
+                produtoAtualizacao.Imagem = imagemNome;
+            }
+
+            produtoAtualizacao.Nome = produtoViewModel.Nome;
+            produtoAtualizacao.Descricao = produtoViewModel.Descricao;
+            produtoAtualizacao.Valor = produtoViewModel.Valor;
+            produtoAtualizacao.Ativo = produtoViewModel.Ativo;
+
+            await produtoService.Atualizar(mapper.Map<Produto>(produtoAtualizacao));
+
+            return CustomResponse(produtoViewModel);
         }
 
         [HttpPost("Adicionar")]
