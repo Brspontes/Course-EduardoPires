@@ -25,7 +25,7 @@ namespace Dev.IO.API.Controllers
         private readonly AppSettings appSettings;
 
         public AuthController(INotificador notificador, SignInManager<IdentityUser> signInManager,
-            UserManager<IdentityUser> userManager, IOptions<AppSettings> appSettings) : base(notificador)
+            UserManager<IdentityUser> userManager, IOptions<AppSettings> appSettings, IUser user) : base(notificador, user)
         {
             this.signInManager = signInManager;
             this.userManager = userManager;

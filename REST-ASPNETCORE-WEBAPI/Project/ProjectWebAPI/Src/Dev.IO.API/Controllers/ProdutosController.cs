@@ -22,8 +22,8 @@ namespace Dev.IO.API.Controllers
         private readonly IProdutoService produtoService;
         private readonly IMapper mapper;
 
-        public ProdutosController(INotificador notificador, IProdutoRepository produtoRepository, IProdutoService produtoService, IMapper mapper) 
-            : base(notificador)
+        public ProdutosController(INotificador notificador, IProdutoRepository produtoRepository, IProdutoService produtoService, IMapper mapper, IUser user) 
+            : base(notificador, user)
         {
             this.produtoRepository = produtoRepository;
             this.produtoService = produtoService;
