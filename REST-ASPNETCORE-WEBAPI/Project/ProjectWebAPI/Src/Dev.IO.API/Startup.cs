@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace Dev.IO.API
 {
@@ -30,6 +31,12 @@ namespace Dev.IO.API
             services.AddIdentityConfiguration(Configuration);
             services.AddAutoMapper(typeof(Startup));
             services.WebApiConfig();
+
+            services.AddSwaggerGen(x =>
+            {
+                x.SwaggerDoc("V1", new Info { Title = "API", Version = "V1" });
+            });
+
             services.ResolveDependencies();
         }
 
@@ -48,6 +55,12 @@ namespace Dev.IO.API
 
             app.UseAuthentication(); // => sempre antes da configuração do MVC
             app.UseMvcConfiguration();
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/V1/swagger.json", "Web API - MongoDB");
+            });
         }
     }
 }
