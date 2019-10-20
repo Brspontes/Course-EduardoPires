@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using Dev.IO.API.Extensions;
 using Dev.IO.API.ViewModels;
 using DevIO.Business.Intefaces;
 using DevIO.Business.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -12,6 +14,7 @@ using System.Threading.Tasks;
 
 namespace Dev.IO.API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     public class ProdutosController : MainController
     {
@@ -41,6 +44,7 @@ namespace Dev.IO.API.Controllers
         }
 
         [HttpPost]
+        [ClaimsAuthorize("Produtos", "Adicionar")]
         public async Task<ActionResult<ProdutosViewModel>> Adicionar(ProdutosViewModel produtosViewModel)
         {
             if (!ModelState.IsValid) return CustomResponse(ModelState);
@@ -56,6 +60,7 @@ namespace Dev.IO.API.Controllers
             return CustomResponse(produtosViewModel);
         }
 
+        [ClaimsAuthorize("Produtos", "Atualizar")]
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> Atualizar(Guid id, ProdutosViewModel produtoViewModel)
         {
@@ -90,6 +95,7 @@ namespace Dev.IO.API.Controllers
             return CustomResponse(produtoViewModel);
         }
 
+        [ClaimsAuthorize("Produtos", "Adicionar")]
         [HttpPost("Adicionar")]
         public async Task<ActionResult<ProdutosViewModel>> AdicionarAlternativo(ProdutosImagemViewModel produtosViewModel)
         {
@@ -106,7 +112,7 @@ namespace Dev.IO.API.Controllers
             return CustomResponse(produtosViewModel);
         }
 
-
+        [ClaimsAuthorize("Produtos", "Remover")]
         [HttpDelete("{id:guid}")]
         public async Task<ActionResult<ProdutosViewModel>> Excluir([FromRoute] Guid id)
         {
