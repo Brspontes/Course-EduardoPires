@@ -1,7 +1,10 @@
 ﻿using AutoMapper;
 using Dev.IO.API.Configuration;
 using DevIO.Data.Context;
+using HealthChecks.SqlServer;
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -37,6 +40,11 @@ namespace Dev.IO.API
                 x.SwaggerDoc("V1", new Info { Title = "API", Version = "V1" });
             });
 
+            services.AddHealthChecks()
+               .AddSqlServer(Configuration.GetConnectionString("DefaultConnection"), name: "BancoSQL");
+
+            services.AddHealthChecksUI();
+
             services.ResolveDependencies();
         }
 
@@ -59,8 +67,14 @@ namespace Dev.IO.API
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/V1/swagger.json", "Web API - MongoDB");
+                c.SwaggerEndpoint("/swagger/V1/swagger.json", "Web API");
             });
+            app.UseHealthChecks("/api/hc", new HealthCheckOptions()
+            {
+                Predicate = _ => true,
+                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+            });
+            app.UseHealthChecksUI(options => { options.UIPath = "/api/hc-ui"; });
         }
     }
 }

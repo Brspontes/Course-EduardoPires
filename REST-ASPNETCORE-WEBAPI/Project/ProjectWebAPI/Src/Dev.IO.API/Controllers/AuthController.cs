@@ -11,6 +11,7 @@ using DevIO.Business.Intefaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -23,13 +24,16 @@ namespace Dev.IO.API.Controllers
         private readonly SignInManager<IdentityUser> signInManager;
         private readonly UserManager<IdentityUser> userManager;
         private readonly AppSettings appSettings;
+        private readonly ILogger logger;
 
         public AuthController(INotificador notificador, SignInManager<IdentityUser> signInManager,
-            UserManager<IdentityUser> userManager, IOptions<AppSettings> appSettings, IUser user) : base(notificador, user)
+            UserManager<IdentityUser> userManager, IOptions<AppSettings> appSettings, IUser user, 
+            ILogger<AuthController> logger) : base(notificador, user)
         {
             this.signInManager = signInManager;
             this.userManager = userManager;
             this.appSettings = appSettings.Value;
+            this.logger = logger;
         }
 
         [HttpPost("nova-conta")]
@@ -70,6 +74,7 @@ namespace Dev.IO.API.Controllers
 
             if (result.Succeeded)
             {
+                logger.LogInformation($"Usuario {loginUser.Email} logado com sucesso");
                 return CustomResponse(await GerarJWT(loginUser.Email));
             }
             if (result.IsLockedOut)
