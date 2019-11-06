@@ -1,3 +1,4 @@
+import { DatabindingComponent } from './../demos/databinding/databinding.component';
 import { SobreComponent } from './../institucional/sobre/sobre.component';
 import { ContatoComponent } from './../institucional/contato/contato.component';
 import { NgModule } from '@angular/core';
@@ -11,6 +12,7 @@ const routes: Routes = [
   { path: 'home', component: HomeComponent },
   { path: 'contato', component: ContatoComponent },
   { path: 'sobre', component: SobreComponent},
+  { path: 'data-binding', component: DatabindingComponent },
   { path: '**', component: HomeComponent }
 ];
 
